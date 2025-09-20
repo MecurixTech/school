@@ -213,6 +213,131 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
           relatedData = { lessons: [] };
         }
         break;
+      case "result":
+        console.log("Fetching related data for result form...");
+        console.log("Role:", role, "Current User ID:", currentUserId);
+
+        try {
+          // Fetch exams based on role
+          let examsQuery = {};
+          if (role === "teacher" && currentUserId) {
+            examsQuery = { lesson: { teacherId: currentUserId } };
+            console.log("Filtering exams for teacher:", currentUserId);
+          } else {
+            console.log("Showing all exams (admin/student/parent view)");
+          }
+
+          const exams = await prisma.exam.findMany({
+            where: examsQuery,
+            select: {
+              id: true,
+              title: true,
+              lesson: {
+                select: {
+                  name: true,
+                  subject: { select: { name: true } },
+                  class: { select: { name: true } },
+                },
+              },
+            },
+            orderBy: { id: "asc" },
+          });
+
+          console.log("Raw exams found:", exams.length);
+
+          // Format exams with descriptive names
+          const formattedExams = exams.map((exam) => ({
+            id: exam.id,
+            title: exam.title,
+            lesson: `${exam.lesson.name} - ${exam.lesson.subject.name} (${exam.lesson.class.name})`,
+          }));
+
+          // Fetch assignments based on role
+          let assignmentsQuery = {};
+          if (role === "teacher" && currentUserId) {
+            assignmentsQuery = { lesson: { teacherId: currentUserId } };
+            console.log("Filtering assignments for teacher:", currentUserId);
+          } else {
+            console.log("Showing all assignments (admin/student/parent view)");
+          }
+
+          const assignments = await prisma.assignment.findMany({
+            where: assignmentsQuery,
+            select: {
+              id: true,
+              title: true,
+              lesson: {
+                select: {
+                  name: true,
+                  subject: { select: { name: true } },
+                  class: { select: { name: true } },
+                },
+              },
+            },
+            orderBy: { id: "asc" },
+          });
+
+          console.log("Raw assignments found:", assignments.length);
+
+          // Format assignments with descriptive names
+          const formattedAssignments = assignments.map((assignment) => ({
+            id: assignment.id,
+            title: assignment.title,
+            lesson: `${assignment.lesson.name} - ${assignment.lesson.subject.name} (${assignment.lesson.class.name})`,
+          }));
+
+          // Fetch students based on role
+          let studentsQuery = {};
+          if (role === "teacher" && currentUserId) {
+            // Teachers can only create results for students in their classes
+            studentsQuery = {
+              class: {
+                lessons: {
+                  some: {
+                    teacherId: currentUserId,
+                  },
+                },
+              },
+            };
+            console.log("Filtering students for teacher:", currentUserId);
+          } else {
+            console.log("Showing all students (admin view)");
+          }
+
+          const students = await prisma.student.findMany({
+            where: studentsQuery,
+            select: {
+              id: true,
+              name: true,
+              surname: true,
+              class: { select: { name: true } },
+            },
+            orderBy: [{ name: "asc" }, { surname: "asc" }],
+          });
+
+          console.log("Raw students found:", students.length);
+
+          console.log("Result form related data:", {
+            exams: formattedExams.length,
+            assignments: formattedAssignments.length,
+            students: students.length,
+          });
+
+          relatedData = {
+            exams: formattedExams,
+            assignments: formattedAssignments,
+            students: students,
+          };
+        } catch (error) {
+          console.error("Error fetching result related data:", error);
+          // Fallback to empty arrays to prevent crashes
+          relatedData = {
+            exams: [],
+            assignments: [],
+            students: [],
+          };
+        }
+        break;
 
       default:
         break;

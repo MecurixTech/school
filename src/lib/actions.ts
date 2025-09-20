@@ -5,6 +5,7 @@ import {
   AssignmentSchema,
   ClassSchema,
   ExamSchema,
+  ResultSchema,
   StudentSchema,
   SubjectSchema,
   TeacherSchema,
@@ -580,6 +581,151 @@ export const deleteAssignment = async (
     return { success: true, error: false };
   } catch (err) {
     console.log("Error deleting assignment:", err);
+    return { success: false, error: true };
+  }
+};
+
+// RESULT ACTIONS
+
+export const createResult = async (
+  currentState: CurrentState,
+  data: ResultSchema
+) => {
+  try {
+    console.log("Creating result with data:", data);
+
+    // Validate that either exam or assignment exists
+    if (data.examId) {
+      const exam = await prisma.exam.findUnique({
+        where: { id: data.examId },
+        select: { id: true, title: true },
+      });
+      if (!exam) {
+        console.error(`Exam with ID ${data.examId} not found`);
+        return { success: false, error: true };
+      }
+      console.log("Found exam:", exam);
+    }
+
+    if (data.assignmentId) {
+      const assignment = await prisma.assignment.findUnique({
+        where: { id: data.assignmentId },
+        select: { id: true, title: true },
+      });
+      if (!assignment) {
+        console.error(`Assignment with ID ${data.assignmentId} not found`);
+        return { success: false, error: true };
+      }
+      console.log("Found assignment:", assignment);
+    }
+
+    // Validate that student exists
+    const student = await prisma.student.findUnique({
+      where: { id: data.studentId },
+      select: { id: true, name: true, surname: true },
+    });
+    if (!student) {
+      console.error(`Student with ID ${data.studentId} not found`);
+      return { success: false, error: true };
+    }
+    console.log("Found student:", student);
+
+    const newResult = await prisma.result.create({
+      data: {
+        score: data.score,
+        examId: data.examId || null,
+        assignmentId: data.assignmentId || null,
+        studentId: data.studentId,
+      },
+    });
+
+    console.log("Created result:", newResult);
+    revalidatePath("/list/results");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error creating result:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const updateResult = async (
+  currentState: CurrentState,
+  data: ResultSchema
+) => {
+  try {
+    console.log("Updating result with data:", data);
+
+    // Validate that either exam or assignment exists
+    if (data.examId) {
+      const exam = await prisma.exam.findUnique({
+        where: { id: data.examId },
+        select: { id: true, title: true },
+      });
+      if (!exam) {
+        console.error(`Exam with ID ${data.examId} not found`);
+        return { success: false, error: true };
+      }
+    }
+
+    if (data.assignmentId) {
+      const assignment = await prisma.assignment.findUnique({
+        where: { id: data.assignmentId },
+        select: { id: true, title: true },
+      });
+      if (!assignment) {
+        console.error(`Assignment with ID ${data.assignmentId} not found`);
+        return { success: false, error: true };
+      }
+    }
+
+    // Validate that student exists
+    const student = await prisma.student.findUnique({
+      where: { id: data.studentId },
+      select: { id: true, name: true, surname: true },
+    });
+    if (!student) {
+      console.error(`Student with ID ${data.studentId} not found`);
+      return { success: false, error: true };
+    }
+
+    await prisma.result.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        score: data.score,
+        examId: data.examId || null,
+        assignmentId: data.assignmentId || null,
+        studentId: data.studentId,
+      },
+    });
+
+    console.log("Updated result successfully");
+    revalidatePath("/list/results");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error updating result:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const deleteResult = async (
+  currentState: CurrentState,
+  data: FormData
+) => {
+  const id = data.get("id") as string;
+
+  try {
+    await prisma.result.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    revalidatePath("/list/results");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error deleting result:", err);
     return { success: false, error: true };
   }
 };
