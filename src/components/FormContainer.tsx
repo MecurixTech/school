@@ -28,6 +28,14 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
 
+  console.log("FormContainer - Auth info:", {
+    userId,
+    role,
+    currentUserId,
+    table,
+    type,
+  });
+
   if (type !== "delete") {
     switch (table) {
       case "subject":
@@ -61,13 +69,149 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         relatedData = { classes: studentClasses, grades: studentGrades };
         break;
       case "exam":
-        const examLessons = await prisma.lesson.findMany({
-          where: {
-            ...(role === "teacher" ? { teacherId: currentUserId! } : {}),
-          },
-          select: { id: true, name: true },
-        });
-        relatedData = { lessons: examLessons };
+        console.log("Fetching lessons for exam form...");
+        console.log("Role:", role, "Current User ID:", currentUserId);
+
+        let examLessonsQuery = {};
+
+        // Only filter by teacher if the role is explicitly "teacher" and we have a valid currentUserId
+        if (role === "teacher" && currentUserId) {
+          examLessonsQuery = { teacherId: currentUserId };
+          console.log("Filtering lessons for teacher:", currentUserId);
+        } else {
+          console.log(
+            "Showing all lessons (admin/student/parent view or no specific teacher)"
+          );
+        }
+
+        console.log("Lesson query where clause:", examLessonsQuery);
+
+        try {
+          const examLessons = await prisma.lesson.findMany({
+            where: examLessonsQuery,
+            select: {
+              id: true,
+              name: true,
+              subject: { select: { name: true } },
+              class: { select: { name: true } },
+            },
+            orderBy: { id: "asc" }, // Add consistent ordering
+          });
+
+          console.log("Raw lessons found:", examLessons.length);
+          if (examLessons.length === 0) {
+            console.warn(
+              "No lessons found! This might indicate an issue with:",
+              {
+                role,
+                currentUserId,
+                queryUsed: examLessonsQuery,
+              }
+            );
+          }
+
+          // Create more descriptive lesson names
+          const formattedLessons = examLessons.map((lesson) => ({
+            id: lesson.id,
+            name: `${lesson.name} - ${lesson.subject.name} (${lesson.class.name})`,
+          }));
+
+          console.log(
+            "Formatted lessons being passed to form:",
+            formattedLessons.length
+          );
+          relatedData = { lessons: formattedLessons };
+        } catch (error) {
+          console.error("Error fetching lessons:", error);
+          // Fallback to empty array to prevent crashes
+          relatedData = { lessons: [] };
+        }
+        break;
+      case "assignment":
+        console.log("Fetching lessons for assignment form...");
+        console.log("Role:", role, "Current User ID:", currentUserId);
+
+        let assignmentLessonsQuery = {};
+
+        // Only filter by teacher if the role is explicitly "teacher" and we have a valid currentUserId
+        if (role === "teacher" && currentUserId) {
+          assignmentLessonsQuery = { teacherId: currentUserId };
+          console.log("Filtering lessons for teacher:", currentUserId);
+        } else {
+          console.log(
+            "Showing all lessons (admin/student/parent view or no specific teacher)"
+          );
+        }
+
+        console.log(
+          "Assignment lesson query where clause:",
+          assignmentLessonsQuery
+        );
+
+        try {
+          const assignmentLessons = await prisma.lesson.findMany({
+            where: assignmentLessonsQuery,
+            select: {
+              id: true,
+              name: true,
+              subject: { select: { name: true } },
+              class: { select: { name: true } },
+            },
+            orderBy: { id: "asc" }, // Add consistent ordering
+          });
+
+          console.log(
+            "Raw assignment lessons found:",
+            assignmentLessons.length
+          );
+
+          // If no lessons found and we're filtering by teacher, try getting all lessons as fallback
+          let finalLessons = assignmentLessons;
+          if (assignmentLessons.length === 0 && role === "teacher") {
+            console.warn(
+              `No lessons found for teacher ${currentUserId}! This teacher may not be assigned to any lessons.`
+            );
+            console.log("Available teacher IDs with lessons:");
+
+            // Don't show all lessons as fallback for teachers - they should only see their own lessons
+            console.log(
+              "For security, teachers can only create assignments for their own lessons."
+            );
+            finalLessons = []; // Keep it empty rather than showing all lessons
+          }
+
+          if (finalLessons.length === 0) {
+            console.warn("No lessons available for assignment creation:", {
+              role,
+              currentUserId,
+              queryUsed: assignmentLessonsQuery,
+              message:
+                role === "teacher"
+                  ? "This teacher is not assigned to any lessons"
+                  : "No lessons found in database",
+            });
+          }
+
+          // Create more descriptive lesson names
+          const formattedAssignmentLessons = finalLessons.map((lesson) => ({
+            id: lesson.id,
+            name: `${lesson.name} - ${lesson.subject.name} (${lesson.class.name})`,
+          }));
+
+          console.log(
+            "Formatted assignment lessons being passed to form:",
+            formattedAssignmentLessons.length
+          );
+          console.log(
+            "First few assignment lessons:",
+            formattedAssignmentLessons.slice(0, 3)
+          );
+          relatedData = { lessons: formattedAssignmentLessons };
+        } catch (error) {
+          console.error("Error fetching assignment lessons:", error);
+          // Fallback to empty array to prevent crashes
+          relatedData = { lessons: [] };
+        }
         break;
 
       default:

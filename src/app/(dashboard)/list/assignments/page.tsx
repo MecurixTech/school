@@ -1,4 +1,4 @@
-import FormModal from "@/components/FormModal";
+import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
@@ -21,12 +21,16 @@ const AssignmentListPage = async ({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) => {
-
   const { userId, sessionClaims } = auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
-  
-  
+
+  console.log("Assignment page - Current user info:", {
+    userId,
+    role,
+    currentUserId,
+  });
+
   const columns = [
     {
       header: "Subject Name",
@@ -55,13 +59,15 @@ const AssignmentListPage = async ({
         ]
       : []),
   ];
-  
+
   const renderRow = (item: AssignmentList) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.lesson.subject.name}</td>
+      <td className="flex items-center gap-4 p-4">
+        {item.lesson.subject.name}
+      </td>
       <td>{item.lesson.class.name}</td>
       <td className="hidden md:table-cell">
         {item.lesson.teacher.name + " " + item.lesson.teacher.surname}
@@ -73,8 +79,8 @@ const AssignmentListPage = async ({
         <div className="flex items-center gap-2">
           {(role === "admin" || role === "teacher") && (
             <>
-              <FormModal table="assignment" type="update" data={item} />
-              <FormModal table="assignment" type="delete" id={item.id} />
+              <FormContainer table="assignment" type="update" data={item} />
+              <FormContainer table="assignment" type="delete" id={item.id} />
             </>
           )}
         </div>
@@ -116,13 +122,18 @@ const AssignmentListPage = async ({
 
   // ROLE CONDITIONS
 
+  console.log("Assignment query before role filtering:", query);
+
   switch (role) {
     case "admin":
+      console.log("Admin user - showing all assignments");
       break;
     case "teacher":
+      console.log("Teacher user - filtering by teacherId:", currentUserId);
       query.lesson.teacherId = currentUserId!;
       break;
     case "student":
+      console.log("Student user - filtering by student class");
       query.lesson.class = {
         students: {
           some: {
@@ -132,6 +143,7 @@ const AssignmentListPage = async ({
       };
       break;
     case "parent":
+      console.log("Parent user - filtering by parent's children");
       query.lesson.class = {
         students: {
           some: {
@@ -141,8 +153,11 @@ const AssignmentListPage = async ({
       };
       break;
     default:
+      console.log("Unknown role - showing all assignments");
       break;
   }
+
+  console.log("Final assignment query:", query);
 
   const [data, count] = await prisma.$transaction([
     prisma.assignment.findMany({
@@ -161,6 +176,9 @@ const AssignmentListPage = async ({
     }),
     prisma.assignment.count({ where: query }),
   ]);
+
+  console.log("Assignments found:", data.length);
+  console.log("Total assignment count:", count);
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/* TOP */}
@@ -177,10 +195,9 @@ const AssignmentListPage = async ({
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" ||
-              (role === "teacher" && (
-                <FormModal table="assignment" type="create" />
-              ))}
+            {(role === "admin" || role === "teacher") && (
+              <FormContainer table="assignment" type="create" />
+            )}
           </div>
         </div>
       </div>
