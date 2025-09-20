@@ -378,11 +378,14 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
           let studentsQuery = {};
           if (role === "teacher") {
             // Teachers can only see students from classes they teach
-            const teacherClassIds = lessons.map(lesson => lesson.classId);
+            const teacherClassIds = lessons.map((lesson) => lesson.classId);
             studentsQuery = {
               classId: { in: teacherClassIds },
             };
-            console.log("Filtering students for teacher's classes:", teacherClassIds);
+            console.log(
+              "Filtering students for teacher's classes:",
+              teacherClassIds
+            );
           } else if (role === "student") {
             // Students can only see themselves
             studentsQuery = {

@@ -4,7 +4,15 @@ import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Attendance, Class, Lesson, Prisma, Student, Subject, Teacher } from "@prisma/client";
+import {
+  Attendance,
+  Class,
+  Lesson,
+  Prisma,
+  Student,
+  Subject,
+  Teacher,
+} from "@prisma/client";
 import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 
@@ -29,7 +37,7 @@ const AttendanceListPage = async ({
   console.log("Attendance page - Current user info:", {
     userId,
     role,
-    currentUserId
+    currentUserId,
   });
 
   const columns = [
@@ -82,7 +90,9 @@ const AttendanceListPage = async ({
     >
       <td className="flex items-center gap-4 p-4">
         <div className="flex flex-col">
-          <h3 className="font-semibold">{item.student.name} {item.student.surname}</h3>
+          <h3 className="font-semibold">
+            {item.student.name} {item.student.surname}
+          </h3>
           <p className="text-xs text-gray-500">{item.student.id}</p>
         </div>
       </td>
@@ -294,7 +304,9 @@ const AttendanceListPage = async ({
           Absent Only
         </a>
         <a
-          href={`/list/attendance?date=${new Date().toISOString().split("T")[0]}`}
+          href={`/list/attendance?date=${
+            new Date().toISOString().split("T")[0]
+          }`}
           className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full transition-colors"
         >
           Today
@@ -309,7 +321,7 @@ const AttendanceListPage = async ({
 
       {/* LIST */}
       <Table columns={columns} renderRow={renderRow} data={data} />
-      
+
       {/* PAGINATION */}
       <Pagination page={p} count={count} />
     </div>

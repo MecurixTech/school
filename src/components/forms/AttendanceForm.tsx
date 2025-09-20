@@ -3,7 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField";
-import { AttendanceSchema, attendanceSchema } from "@/lib/formValidationSchemas";
+import {
+  AttendanceSchema,
+  attendanceSchema,
+} from "@/lib/formValidationSchemas";
 import { createAttendance, updateAttendance } from "@/lib/actions";
 import { useFormState } from "react-dom";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -37,7 +40,9 @@ const AttendanceForm = ({
   const safeLessons = Array.isArray(lessons) ? lessons : [];
   const safeStudents = Array.isArray(students) ? students : [];
 
-  const [selectedLessonId, setSelectedLessonId] = useState(data?.lessonId || "");
+  const [selectedLessonId, setSelectedLessonId] = useState(
+    data?.lessonId || ""
+  );
   const [filteredStudents, setFilteredStudents] = useState(safeStudents || []);
 
   // Filter students based on selected lesson's class
@@ -46,7 +51,7 @@ const AttendanceForm = ({
       const selectedLesson = safeLessons.find(
         (lesson: any) => lesson.id === parseInt(selectedLessonId)
       );
-      
+
       if (selectedLesson) {
         const studentsInClass = safeStudents.filter(
           (student: any) => student.classId === selectedLesson.classId
@@ -77,7 +82,9 @@ const AttendanceForm = ({
 
   useEffect(() => {
     if (state.success) {
-      toast(`Attendance has been ${type === "create" ? "created" : "updated"}!`);
+      toast(
+        `Attendance has been ${type === "create" ? "created" : "updated"}!`
+      );
       setOpen(false);
       router.refresh();
     }
@@ -94,12 +101,16 @@ const AttendanceForm = ({
   return (
     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new attendance record" : "Update attendance record"}
+        {type === "create"
+          ? "Create a new attendance record"
+          : "Update attendance record"}
       </h1>
 
       {/* DEBUG INFO */}
       <div className="bg-yellow-50 p-3 rounded-md text-xs">
-        <p><strong>Debug Info:</strong></p>
+        <p>
+          <strong>Debug Info:</strong>
+        </p>
         <p>Lessons available: {safeLessons.length}</p>
         <p>Students available: {safeStudents.length}</p>
         <p>Filtered students: {filteredStudents.length}</p>
@@ -111,7 +122,11 @@ const AttendanceForm = ({
         <InputField
           label="Date"
           name="date"
-          defaultValue={data?.date ? new Date(data.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+          defaultValue={
+            data?.date
+              ? new Date(data.date).toISOString().split("T")[0]
+              : new Date().toISOString().split("T")[0]
+          }
           register={register}
           error={errors?.date}
           type="date"
@@ -130,13 +145,22 @@ const AttendanceForm = ({
           >
             <option value="">Select a lesson</option>
             {safeLessons?.length === 0 && (
-              <option value="" disabled>No lessons available</option>
-            )}
-            {safeLessons?.map((lesson: { id: number; name: string; subject: { name: string }; class: { name: string } }) => (
-              <option value={lesson.id} key={lesson.id}>
-                {lesson.name} ({lesson.subject.name} - {lesson.class.name})
+              <option value="" disabled>
+                No lessons available
               </option>
-            ))}
+            )}
+            {safeLessons?.map(
+              (lesson: {
+                id: number;
+                name: string;
+                subject: { name: string };
+                class: { name: string };
+              }) => (
+                <option value={lesson.id} key={lesson.id}>
+                  {lesson.name} ({lesson.subject.name} - {lesson.class.name})
+                </option>
+              )
+            )}
           </select>
           {errors.lessonId?.message && (
             <p className="text-xs text-red-400">
@@ -156,14 +180,23 @@ const AttendanceForm = ({
             <option value="">Select a student</option>
             {filteredStudents?.length === 0 && (
               <option value="" disabled>
-                {selectedLessonId ? "No students in this lesson's class" : "No students available"}
+                {selectedLessonId
+                  ? "No students in this lesson's class"
+                  : "No students available"}
               </option>
             )}
-            {filteredStudents?.map((student: { id: string; name: string; surname: string; class: { name: string } }) => (
-              <option value={student.id} key={student.id}>
-                {student.name} {student.surname} ({student.class.name})
-              </option>
-            ))}
+            {filteredStudents?.map(
+              (student: {
+                id: string;
+                name: string;
+                surname: string;
+                class: { name: string };
+              }) => (
+                <option value={student.id} key={student.id}>
+                  {student.name} {student.surname} ({student.class.name})
+                </option>
+              )
+            )}
           </select>
           {errors.studentId?.message && (
             <p className="text-xs text-red-400">
@@ -184,7 +217,9 @@ const AttendanceForm = ({
                 defaultChecked={data?.present === true}
                 className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500"
               />
-              <span className="text-sm text-green-700 font-medium">Present</span>
+              <span className="text-sm text-green-700 font-medium">
+                Present
+              </span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
