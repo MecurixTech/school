@@ -2,6 +2,7 @@
 
 import {
   deleteAssignment,
+  deleteAttendance,
   deleteClass,
   deleteExam,
   deleteResult,
@@ -25,10 +26,10 @@ const deleteActionMap = {
   exam: deleteExam,
   assignment: deleteAssignment,
   result: deleteResult,
+  attendance: deleteAttendance,
   // TODO: OTHER DELETE ACTIONS
   parent: deleteSubject,
   lesson: deleteSubject,
-  attendance: deleteSubject,
   event: deleteSubject,
   announcement: deleteSubject,
 }; // USE LAZY LOADING
@@ -55,6 +56,9 @@ const AssignmentForm = dynamic(() => import("./forms/AssignmentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 const ResultForm = dynamic(() => import("./forms/ResultForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 // TODO: OTHER FORMS
@@ -117,6 +121,14 @@ const forms: {
   ),
   result: (setOpen, type, data, relatedData) => (
     <ResultForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  attendance: (setOpen, type, data, relatedData) => (
+    <AttendanceForm
       type={type}
       data={data}
       setOpen={setOpen}

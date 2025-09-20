@@ -339,6 +339,104 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         }
         break;
 
+      case "attendance":
+        try {
+          console.log("=== FormContainer Attendance Case ===");
+          console.log("Fetching attendance form data for role:", role);
+          console.log("Current user ID:", currentUserId);
+
+          // Fetch lessons based on role
+          let lessonsQuery = {};
+          if (role === "teacher") {
+            lessonsQuery = {
+              teacherId: currentUserId,
+            };
+            console.log("Filtering lessons for teacher:", currentUserId);
+          } else {
+            console.log("Showing all lessons (admin view)");
+          }
+
+          console.log("Lessons query:", lessonsQuery);
+
+          const lessons = await prisma.lesson.findMany({
+            where: lessonsQuery,
+            select: {
+              id: true,
+              name: true,
+              classId: true,
+              subject: { select: { name: true } },
+              class: { select: { name: true } },
+              teacher: { select: { name: true, surname: true } },
+            },
+            orderBy: { name: "asc" },
+          });
+
+          console.log("✅ Lessons found for attendance:", lessons.length);
+          console.log("✅ Sample lessons:", lessons.slice(0, 2));
+
+          // Fetch students based on role
+          let studentsQuery = {};
+          if (role === "teacher") {
+            // Teachers can only see students from classes they teach
+            const teacherClassIds = lessons.map(lesson => lesson.classId);
+            studentsQuery = {
+              classId: { in: teacherClassIds },
+            };
+            console.log("Filtering students for teacher's classes:", teacherClassIds);
+          } else if (role === "student") {
+            // Students can only see themselves
+            studentsQuery = {
+              id: currentUserId,
+            };
+            console.log("Filtering for student self:", currentUserId);
+          } else if (role === "parent") {
+            // Parents can only see their children
+            studentsQuery = {
+              parentId: currentUserId,
+            };
+            console.log("Filtering students for parent:", currentUserId);
+          } else {
+            console.log("Showing all students (admin view)");
+          }
+
+          console.log("Students query:", studentsQuery);
+
+          const students = await prisma.student.findMany({
+            where: studentsQuery,
+            select: {
+              id: true,
+              name: true,
+              surname: true,
+              classId: true,
+              class: { select: { name: true } },
+            },
+            orderBy: [{ name: "asc" }, { surname: "asc" }],
+          });
+
+          console.log("✅ Students found for attendance:", students.length);
+          console.log("✅ Sample students:", students.slice(0, 2));
+
+          console.log("✅ Creating relatedData for attendance:", {
+            lessons: lessons.length,
+            students: students.length,
+          });
+
+          relatedData = {
+            lessons: lessons,
+            students: students,
+          };
+
+          console.log("✅ Final relatedData assigned successfully");
+        } catch (error) {
+          console.error("❌ Error fetching attendance related data:", error);
+          // Fallback to empty arrays to prevent crashes
+          relatedData = {
+            lessons: [],
+            students: [],
+          };
+        }
+        break;
+
       default:
         break;
     }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   AssignmentSchema,
+  AttendanceSchema,
   ClassSchema,
   ExamSchema,
   ResultSchema,
@@ -726,6 +727,82 @@ export const deleteResult = async (
     return { success: true, error: false };
   } catch (err) {
     console.log("Error deleting result:", err);
+    return { success: false, error: true };
+  }
+};
+
+// ATTENDANCE ACTIONS
+
+export const createAttendance = async (
+  currentState: CurrentState,
+  data: AttendanceSchema
+) => {
+  try {
+    console.log("Creating attendance with data:", data);
+
+    await prisma.attendance.create({
+      data: {
+        date: data.date,
+        present: data.present,
+        studentId: data.studentId,
+        lessonId: data.lessonId,
+      },
+    });
+
+    console.log("Created attendance successfully");
+    revalidatePath("/list/attendance");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error creating attendance:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const updateAttendance = async (
+  currentState: CurrentState,
+  data: AttendanceSchema
+) => {
+  try {
+    console.log("Updating attendance with data:", data);
+
+    await prisma.attendance.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        date: data.date,
+        present: data.present,
+        studentId: data.studentId,
+        lessonId: data.lessonId,
+      },
+    });
+
+    console.log("Updated attendance successfully");
+    revalidatePath("/list/attendance");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error updating attendance:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const deleteAttendance = async (
+  currentState: CurrentState,
+  data: FormData
+) => {
+  const id = data.get("id") as string;
+
+  try {
+    await prisma.attendance.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    revalidatePath("/list/attendance");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error deleting attendance:", err);
     return { success: false, error: true };
   }
 };
