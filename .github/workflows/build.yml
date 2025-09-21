@@ -23,11 +23,11 @@ jobs:
       - name: Build, tag and push (Staging)
         if: github.ref == 'refs/heads/dev'
         env:
-          REPOSITORY: ${{ secrets.DOCKERHUB_USERNAME }}/ivent_fe
+          REPOSITORY: ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev
         run: |
           base64 -d <<< "${{ secrets.ENV_FILE }}" > .env
-          docker build -t $REPOSITORY:latest-dev .
-          docker push $REPOSITORY:latest-dev
+          docker build -t $REPOSITORY:dev .
+          docker push $REPOSITORY:dev
 
       - name: Build, tag and push (Production)
         if: github.ref == 'refs/heads/main'
@@ -38,19 +38,23 @@ jobs:
           docker build -t $REPOSITORY:latest .
           docker push $REPOSITORY:latest
 
-      - name: Deploy to Hetzner Staging
+      - name: Deploy to dev (EC2)
         if: github.ref == 'refs/heads/dev'
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ secrets.EC2_HOST_DEV_1 }}
+          username: ${{ secrets.EC2_USER_DEV_1 }}
+          key: ${{ secrets.EC2_SSH_KEY_DEV_1 }}
           port: 22
-          password: ${{ secrets.SSH_PASS }}
           script: |
-            ./docker_login.sh
-            docker rm -f ivent_fe || true
-            docker image rm -f ${{ secrets.DOCKERHUB_USERNAME }}/ivent_fe:latest-dev || true
-            docker run -p 3000:3000 --name ivent_fe -d ${{ secrets.DOCKERHUB_USERNAME }}/ivent_fe:latest-dev
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev:dev
+            docker stop sms-mecurix-dev || true
+            docker rm sms-mecurix-dev || true
+            docker run -d \
+              --name sms-mecurix-dev \
+              -p 3015:3000 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev:dev
 
       - name: Deploy to main (EC2)
         if: github.ref == 'refs/heads/main'
