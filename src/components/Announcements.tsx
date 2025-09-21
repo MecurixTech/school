@@ -1,28 +1,25 @@
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 
 const Announcements = async () => {
-  const { userId, sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const { userId, sessionClaims } = auth()
+  const role = (sessionClaims?.metadata as { role?: string })?.role
 
   const roleConditions = {
     teacher: { lessons: { some: { teacherId: userId! } } },
     student: { students: { some: { id: userId! } } },
     parent: { students: { some: { parentId: userId! } } },
-  };
+  }
 
   const data = await prisma.announcement.findMany({
     take: 3,
     orderBy: { date: "desc" },
     where: {
       ...(role !== "admin" && {
-        OR: [
-          { classId: null },
-          { class: roleConditions[role as keyof typeof roleConditions] || {} },
-        ],
+        OR: [{ classId: null }, { class: roleConditions[role as keyof typeof roleConditions] || {} }],
       }),
     },
-  });
+  })
 
   return (
     <div className="bg-white p-4 rounded-md">
@@ -66,7 +63,7 @@ const Announcements = async () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Announcements;
+export default Announcements
