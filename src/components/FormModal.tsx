@@ -9,6 +9,7 @@ import {
   deleteStudent,
   deleteSubject,
   deleteTeacher,
+  deleteParent,
 } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -23,12 +24,13 @@ const deleteActionMap = {
   class: deleteClass,
   teacher: deleteTeacher,
   student: deleteStudent,
+  parent: deleteParent,
   exam: deleteExam,
   assignment: deleteAssignment,
   result: deleteResult,
   attendance: deleteAttendance,
   // TODO: OTHER DELETE ACTIONS
-  parent: deleteSubject,
+  
   lesson: deleteSubject,
   event: deleteSubject,
   announcement: deleteSubject,
@@ -61,7 +63,9 @@ const ResultForm = dynamic(() => import("./forms/ResultForm"), {
 const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-// TODO: OTHER FORMS
+const ParentForm = dynamic(() => import("./forms/ParentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
 
 const forms: {
   [key: string]: (
@@ -97,6 +101,14 @@ const forms: {
   ),
   student: (setOpen, type, data, relatedData) => (
     <StudentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+   parent: (setOpen, type, data, relatedData) => (
+    <ParentForm
       type={type}
       data={data}
       setOpen={setOpen}
