@@ -412,7 +412,7 @@ export const createExam = async (
     });
 
     console.log("Created exam:", newExam);
-    // revalidatePath("/list/subjects");
+    // revalidatePath("/list/exams");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error creating exam:", err);
@@ -453,7 +453,7 @@ export const updateExam = async (
       },
     });
 
-    // revalidatePath("/list/subjects");
+    // revalidatePath("/list/exams");
     return { success: true, error: false };
   } catch (err) {
     console.log(err);
@@ -478,7 +478,7 @@ export const deleteExam = async (
       },
     });
 
-    // revalidatePath("/list/subjects");
+    // revalidatePath("/list/exams");
     return { success: true, error: false };
   } catch (err) {
     console.log(err);
