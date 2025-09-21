@@ -1,0 +1,75 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build, tag and push (Staging)
+        if: github.ref == 'refs/heads/dev'
+        env:
+          REPOSITORY: ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev
+        run: |
+          base64 -d <<< "${{ secrets.ENV_FILE }}" > .env
+          docker build -t $REPOSITORY:dev .
+          docker push $REPOSITORY:dev
+
+      - name: Build, tag and push (Production)
+        if: github.ref == 'refs/heads/main'
+        env:
+          REPOSITORY: ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix
+        run: |
+          base64 -d <<< "${{ secrets.ENV_FILE }}" > .env
+          docker build -t $REPOSITORY:latest .
+          docker push $REPOSITORY:latest
+
+      - name: Deploy to dev (EC2)
+        if: github.ref == 'refs/heads/dev'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_DEV_1 }}
+          username: ${{ secrets.EC2_USER_DEV_1 }}
+          key: ${{ secrets.EC2_SSH_KEY_DEV_1 }}
+          port: 22
+          script: |
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev:dev
+            docker stop sms-mecurix-dev || true
+            docker rm sms-mecurix-dev || true
+            docker run -d \
+              --name sms-mecurix-dev \
+              -p 3015:3000 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix-dev:dev
+
+      - name: Deploy to main (EC2)
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_DEV }}
+          username: ${{ secrets.EC2_USER_DEV }}
+          key: ${{ secrets.EC2_SSH_KEY_DEV }}
+          port: 22
+          script: |
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix:latest
+            docker stop sms-mecurix || true
+            docker rm sms-mecurix || true
+            docker run -d \
+              --name sms-mecurix \
+              -p 3010:3000 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/sms-mecurix:latest
