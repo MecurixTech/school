@@ -4,23 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField";
 import {
-  examSchema,
-  ExamSchema,
-  subjectSchema,
-  SubjectSchema,
+  assignmentSchema,
+  AssignmentSchema,
 } from "@/lib/formValidationSchemas";
-import {
-  createExam,
-  createSubject,
-  updateExam,
-  updateSubject,
-} from "@/lib/actions";
+import { createAssignment, updateAssignment } from "@/lib/actions";
 import { useFormState } from "react-dom";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
-const ExamForm = ({
+const AssignmentForm = ({
   type,
   data,
   setOpen,
@@ -35,14 +28,14 @@ const ExamForm = ({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ExamSchema>({
-    resolver: zodResolver(examSchema),
+  } = useForm<AssignmentSchema>({
+    resolver: zodResolver(assignmentSchema),
   });
 
   // AFTER REACT 19 IT'LL BE USEACTIONSTATE
 
   const [state, formAction] = useFormState(
-    type === "create" ? createExam : updateExam,
+    type === "create" ? createAssignment : updateAssignment,
     {
       success: false,
       error: false,
@@ -50,7 +43,7 @@ const ExamForm = ({
   );
 
   const onSubmit = handleSubmit((data) => {
-    console.log("Form data before submission:", data);
+    console.log("Assignment form data before submission:", data);
     console.log(
       "Lesson ID being submitted:",
       data.lessonId,
@@ -63,7 +56,9 @@ const ExamForm = ({
 
   useEffect(() => {
     if (state.success) {
-      toast(`Exam has been ${type === "create" ? "created" : "updated"}!`);
+      toast(
+        `Assignment has been ${type === "create" ? "created" : "updated"}!`
+      );
       setOpen(false);
       router.refresh();
     }
@@ -71,7 +66,7 @@ const ExamForm = ({
 
   const { lessons } = relatedData || {};
 
-  console.log("Lessons passed to ExamForm:", lessons);
+  console.log("Lessons passed to AssignmentForm:", lessons);
   console.log(
     "Type of lessons:",
     typeof lessons,
@@ -85,12 +80,14 @@ const ExamForm = ({
   return (
     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new exam" : "Update the exam"}
+        {type === "create"
+          ? "Create a new assignment"
+          : "Update the assignment"}
       </h1>
 
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
-          label="Exam title"
+          label="Assignment title"
           name="title"
           defaultValue={data?.title}
           register={register}
@@ -98,18 +95,18 @@ const ExamForm = ({
         />
         <InputField
           label="Start Date"
-          name="startTime"
-          defaultValue={data?.startTime}
+          name="startDate"
+          defaultValue={data?.startDate}
           register={register}
-          error={errors?.startTime}
+          error={errors?.startDate}
           type="datetime-local"
         />
         <InputField
-          label="End Date"
-          name="endTime"
-          defaultValue={data?.endTime}
+          label="Due Date"
+          name="dueDate"
+          defaultValue={data?.dueDate}
           register={register}
-          error={errors?.endTime}
+          error={errors?.dueDate}
           type="datetime-local"
         />
         {data && (
@@ -159,4 +156,4 @@ const ExamForm = ({
   );
 };
 
-export default ExamForm;
+export default AssignmentForm;
