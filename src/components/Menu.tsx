@@ -104,9 +104,15 @@ const menuItems = [
       {
         icon: "/setting.png",
         label: "Settings",
-        href: "/settings",
+        href: "/student/settings",
         visible: ["admin", "teacher", "student", "parent"],
       },
+      // {
+      //   icon: "/setting.png",
+      //   label: "Settings",
+      //   href: "/list/settings",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
       {
         icon: "/logout.png",
         label: "Logout",
@@ -117,9 +123,11 @@ const menuItems = [
   },
 ];
 
+type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
+
 const Menu = async () => {
   const user = await currentUser();
-  const role = user?.publicMetadata.role as string;
+  const role = user?.publicMetadata?.role as UserRole | undefined;
   return (
     <div className="mt-4 text-sm">
       {menuItems.map((i) => (
@@ -128,7 +136,7 @@ const Menu = async () => {
             {i.title}
           </span>
           {i.items.map((item) => {
-            if (item.visible.includes(role)) {
+            if (role && item.visible.includes(role)) {
               return (
                 <Link
                   href={item.href}

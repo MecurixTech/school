@@ -5,6 +5,7 @@ import {
   ClassSchema,
   ExamSchema,
   StudentSchema,
+  StudentSettingsSchema,
   SubjectSchema,
   TeacherSchema,
 } from "./formValidationSchemas";
@@ -12,6 +13,49 @@ import prisma from "./prisma";
 import { clerkClient } from "@clerk/nextjs/server";
 
 type CurrentState = { success: boolean; error: boolean };
+
+export const updateStudentSettings = async (
+  currentState: CurrentState,
+  data: StudentSettingsSchema
+) => {
+  if (!data.id) {
+    return { success: false, error: true };
+  }
+  try {
+    if (data.newPassword) {
+      if (!data.currentPassword) {
+        return { success: false, error: true };
+      }
+      await clerkClient.users.updateUser(data.id, {
+        password: data.newPassword,
+      });
+    }
+
+    await prisma.student.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        name: data.name,
+        surname: data.surname,
+        phone: data.phone || null,
+        address: data.address,
+        img: data.img || null,
+        birthday: data.birthday,
+        emergencyContactName: data.emergencyContactName || null,
+        emergencyContactPhone: data.emergencyContactPhone || null,
+        language: data.language || null,
+        timezone: data.timezone || null,
+      },
+    });
+    revalidatePath("/student/settings");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log(err);
+    return { success: false, error: true };
+  }
+};
+
 
 export const createSubject = async (
   currentState: CurrentState,
