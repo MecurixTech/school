@@ -247,7 +247,9 @@ const AttendanceForm = ({
           <li>• Select a lesson first to filter students by class</li>
           <li>• Date defaults to today but can be changed for past records</li>
           <li>• Use Present/Absent radio buttons to mark attendance</li>
-          <li>• Only students from the selected lesson's class will appear</li>
+          <li>
+            • Only students from the selected lesson&apos;s class will appear
+          </li>
         </ul>
       </div>
 
