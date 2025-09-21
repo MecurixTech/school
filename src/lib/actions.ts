@@ -518,7 +518,7 @@ export const createAssignment = async (
     });
 
     console.log("Created assignment:", newAssignment);
-    revalidatePath("/list/assignments");
+    // revalidatePath("/list/assignments");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error creating assignment:", err);
@@ -557,7 +557,7 @@ export const updateAssignment = async (
     });
 
     console.log("Updated assignment successfully");
-    revalidatePath("/list/assignments");
+    // revalidatePath("/list/assignments");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error updating assignment:", err);
@@ -578,7 +578,7 @@ export const deleteAssignment = async (
       },
     });
 
-    revalidatePath("/list/assignments");
+    // revalidatePath("/list/assignments");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error deleting assignment:", err);
@@ -641,7 +641,7 @@ export const createResult = async (
     });
 
     console.log("Created result:", newResult);
-    revalidatePath("/list/results");
+    // revalidatePath("/list/results");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error creating result:", err);
@@ -702,7 +702,7 @@ export const updateResult = async (
     });
 
     console.log("Updated result successfully");
-    revalidatePath("/list/results");
+    // revalidatePath("/list/results");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error updating result:", err);
@@ -723,7 +723,7 @@ export const deleteResult = async (
       },
     });
 
-    revalidatePath("/list/results");
+    // revalidatePath("/list/results");
     return { success: true, error: false };
   } catch (err) {
     console.log("Error deleting result:", err);
