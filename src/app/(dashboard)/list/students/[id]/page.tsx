@@ -5,7 +5,7 @@ import Performance from "@/components/Performance";
 import StudentAttendanceCard from "@/components/StudentAttendanceCard";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { Class, Student } from "@prisma/client";
+import { Class, Student, Parent } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,11 +22,13 @@ const SingleStudentPage = async ({
   const student:
     | (Student & {
         class: Class & { _count: { lessons: number } };
+        parent: Parent | null;
       })
     | null = await prisma.student.findUnique({
     where: { id },
     include: {
       class: { include: { _count: { select: { lessons: true } } } },
+      parent: true,
     },
   });
 
@@ -85,6 +87,9 @@ const SingleStudentPage = async ({
               </div>
             </div>
           </div>
+
+ 
+
           {/* SMALL CARDS */}
           <div className="flex-1 flex gap-4 justify-between flex-wrap">
             {/* CARD */}
@@ -191,6 +196,26 @@ const SingleStudentPage = async ({
             </Link>
           </div>
         </div>
+                 {/* PARENT CARD */}
+{student.parent && (
+  <div className="bg-white p-4 rounded-md flex gap-4 items-center">
+    <Image
+      src="/parent.png"
+      alt=""
+      width={32}
+      height={32}
+      className="w-8 h-8"
+    />
+    <div className="flex flex-col">
+      <h2 className="text-sm font-semibold">
+        {student.parent.name} {student.parent.surname}
+      </h2>
+      <p className="text-xs text-gray-500">
+        📧 {student.parent.email || "-"} | 📞 {student.parent.phone || "-"}
+      </p>
+    </div>
+  </div>
+)}
         <Performance />
         <Announcements />
       </div>

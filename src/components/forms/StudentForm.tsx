@@ -21,6 +21,8 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { CldUploadWidget } from "next-cloudinary";
+import { Controller } from "react-hook-form";
+import Select from "react-select";
 
 const StudentForm = ({
   type,
@@ -33,13 +35,15 @@ const StudentForm = ({
   setOpen: Dispatch<SetStateAction<boolean>>;
   relatedData?: any;
 }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<StudentSchema>({
-    resolver: zodResolver(studentSchema),
-  });
+ const {
+  register,
+  handleSubmit,
+  formState: { errors },
+  control,
+} = useForm<StudentSchema>({
+  resolver: zodResolver(studentSchema),
+});
+
 
   const [img, setImg] = useState<any>();
 
@@ -167,13 +171,40 @@ const StudentForm = ({
           error={errors.birthday}
           type="date"
         />
-        <InputField
-          label="Parent Id"
-          name="parentId"
-          defaultValue={data?.parentId}
-          register={register}
-          error={errors.parentId}
-        />
+       <div className="flex flex-col gap-2 w-full md:w-1/4">
+  <label className="text-xs text-gray-500">Parent</label>
+  <Controller
+    name="parentId"
+    control={control}
+    defaultValue={data?.parentId || null}
+    render={({ field }) => (
+      <Select
+        {...field}
+        options={relatedData.parents.map((p: any) => ({
+          value: p.id,
+          label: `${p.name} ${p.surname} (${p.email})`,
+        }))}
+        defaultValue={
+          data?.parentId
+            ? relatedData.parents
+                .map((p: any) => ({
+                  value: p.id,
+                  label: `${p.name} ${p.surname} (${p.email})`,
+                }))
+                .find((option: any) => option.value === data.parentId)
+            : null
+        }
+        onChange={(selected) => field.onChange(selected?.value || null)}
+        isSearchable
+        className="text-sm"
+      />
+    )}
+  />
+  {errors.parentId?.message && (
+    <p className="text-xs text-red-400">{errors.parentId.message.toString()}</p>
+  )}
+</div>
+
         {data && (
           <InputField
             label="Id"

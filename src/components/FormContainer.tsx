@@ -19,6 +19,7 @@ export type FormContainerProps = {
   type: "create" | "update" | "delete";
   data?: any;
   id?: number | string;
+  relatedData?: any;
 };
 
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
@@ -60,14 +61,18 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         relatedData = { subjects: teacherSubjects };
         break;
       case "student":
-        const studentGrades = await prisma.grade.findMany({
-          select: { id: true, level: true },
-        });
-        const studentClasses = await prisma.class.findMany({
-          include: { _count: { select: { students: true } } },
-        });
-        relatedData = { classes: studentClasses, grades: studentGrades };
-        break;
+  const studentGrades = await prisma.grade.findMany({
+    select: { id: true, level: true },
+  });
+  const studentClasses = await prisma.class.findMany({
+    include: { _count: { select: { students: true } } },
+  });
+  const studentParents = await prisma.parent.findMany({
+    select: { id: true, name: true, surname: true, email: true },
+  });
+  relatedData = { classes: studentClasses, grades: studentGrades, parents: studentParents };
+  break;
+
       case "exam":
         console.log("Fetching lessons for exam form...");
         console.log("Role:", role, "Current User ID:", currentUserId);

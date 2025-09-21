@@ -163,12 +163,28 @@ const FormModal = ({
     const router = useRouter();
 
     useEffect(() => {
-      if (state.success) {
-        toast(`${table} has been deleted!`);
-        setOpen(false);
-        router.refresh();
-      }
-    }, [state, router]);
+  if (state.success) {
+    toast.success(`${table} has been deleted successfully!`, {
+      position: "top-right",
+      autoClose: 4000,
+    });
+    setOpen(false);
+    router.refresh();
+  }
+
+  if (state.error) {
+    const errorMessage =
+      (state as any).message ||
+      (state as any).errors?.[0]?.message ||
+      "Failed to delete. Please try again.";
+
+    toast.error(errorMessage, {
+      position: "top-right",
+      autoClose: 5000,
+    });
+  }
+}, [state, router]);
+
 
     return type === "delete" && id ? (
       <form action={formAction} className="p-4 flex flex-col gap-4">
