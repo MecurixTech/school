@@ -112,7 +112,7 @@ const forms: {
       type={type}
       data={data}
       setOpen={setOpen}
-      relatedData={relatedData}
+      
     />
   ),
   exam: (setOpen, type, data, relatedData) => (
