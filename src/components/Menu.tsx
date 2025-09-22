@@ -92,35 +92,35 @@ const menuItems = [
       },
     ],
   },
-  {
-    title: "OTHER",
-    items: [
-      {
-        icon: "/profile.png",
-        label: "Profile",
-        href: "/profile",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Settings",
-        href: "/student/settings",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
+  // {
+    // title: "OTHER",
+    // items: [
+    //   {
+    //     icon: "/profile.png",
+    //     label: "Profile",
+    //     href: "/dashboard/student/profile",
+    //     visible: ["admin", "teacher", "student", "parent"],
+    //   },
+      // {
+      //   icon: "/setting.png",
+      //   label: "Settings",
+      //   href: "/dashboard/student/settings",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
       // {
       //   icon: "/setting.png",
       //   label: "Settings",
       //   href: "/list/settings",
       //   visible: ["admin", "teacher", "student", "parent"],
       // },
-      {
-        icon: "/logout.png",
-        label: "Logout",
-        href: "/logout",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-    ],
-  },
+      // {
+      //   icon: "/logout.png",
+      //   label: "Logout",
+      //   href: "/logout",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+    // ],
+  // },
 ];
 
 type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
