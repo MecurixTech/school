@@ -92,34 +92,42 @@ const menuItems = [
       },
     ],
   },
-  {
-    title: "OTHER",
-    items: [
-      {
-        icon: "/profile.png",
-        label: "Profile",
-        href: "/profile",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Settings",
-        href: "/settings",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/logout.png",
-        label: "Logout",
-        href: "/logout",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-    ],
-  },
+  // {
+    // title: "OTHER",
+    // items: [
+    //   {
+    //     icon: "/profile.png",
+    //     label: "Profile",
+    //     href: "/dashboard/student/profile",
+    //     visible: ["admin", "teacher", "student", "parent"],
+    //   },
+      // {
+      //   icon: "/setting.png",
+      //   label: "Settings",
+      //   href: "/dashboard/student/settings",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+      // {
+      //   icon: "/setting.png",
+      //   label: "Settings",
+      //   href: "/list/settings",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+      // {
+      //   icon: "/logout.png",
+      //   label: "Logout",
+      //   href: "/logout",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+    // ],
+  // },
 ];
+
+type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 const Menu = async () => {
   const user = await currentUser();
-  const role = user?.publicMetadata.role as string;
+  const role = user?.publicMetadata?.role as UserRole | undefined;
   return (
     <div className="mt-4 text-sm">
       {menuItems.map((i) => (
@@ -128,7 +136,7 @@ const Menu = async () => {
             {i.title}
           </span>
           {i.items.map((item) => {
-            if (item.visible.includes(role)) {
+            if (role && item.visible.includes(role)) {
               return (
                 <Link
                   href={item.href}

@@ -10,6 +10,7 @@ import {
   deleteSubject,
   deleteTeacher,
   deleteParent,
+  type CurrentState,
 } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -19,7 +20,12 @@ import { useFormState } from "react-dom";
 import { toast } from "react-toastify";
 import { FormContainerProps } from "./FormContainer";
 
-const deleteActionMap = {
+type DeleteActionMapType = {
+  [key in 'subject' | 'class' | 'teacher' | 'student' | 'parent' | 'exam' | 'assignment' | 'result' | 'attendance' | 'announcement']: 
+    (currentState: CurrentState, data: FormData) => Promise<{ success: boolean; error: boolean; message?: string }>;
+};
+
+const deleteActionMap: Partial<DeleteActionMapType> & { [key: string]: any } = {
   subject: deleteSubject,
   class: deleteClass,
   teacher: deleteTeacher,
@@ -167,7 +173,17 @@ const FormModal = ({
   const [open, setOpen] = useState(false);
 
   const Form = () => {
-    const [state, formAction] = useFormState(deleteActionMap[table], {
+    const defaultAction = () => Promise.resolve({ 
+      success: false, 
+      error: true, 
+      message: `Deletion not supported for ${table}` 
+    });
+
+    const deleteAction = table in deleteActionMap 
+      ? deleteActionMap[table as keyof DeleteActionMapType] 
+      : defaultAction;
+
+    const [state, formAction] = useFormState(deleteAction || defaultAction, {
       success: false,
       error: false,
     });

@@ -185,3 +185,34 @@ export const parentSchema = z.object({
 
 export type ParentSchema = z.infer<typeof parentSchema>;
 
+
+export const studentSettingsSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, { message: "First name is required!" }),
+  surname: z.string().min(1, { message: "Last name is required!" }),
+  phone: z.string().optional(),
+  address: z.string(),
+  img: z.string().optional(),
+  birthday: z.coerce.date({ message: "Birthday is required!" }),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  language: z.string().optional(),
+  timezone: z.string().optional(),
+  currentPassword: z.string().min(8, { message: "Password must be at least 8 characters long!" }).optional().or(z.literal("")),
+  newPassword: z.string().min(8, { message: "Password must be at least 8 characters long!" }).optional().or(z.literal("")),
+  confirmNewPassword: z.string().min(8, { message: "Password must be at least 8 characters long!" }).optional().or(z.literal("")),
+}).refine(data => {
+  if (data.newPassword && !data.currentPassword) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Current password is required to set a new password.",
+  path: ["currentPassword"],
+}).refine(data => data.newPassword === data.confirmNewPassword, {
+  message: "Passwords don't match",
+  path: ["confirmNewPassword"],
+});
+
+export type StudentSettingsSchema = z.infer<typeof studentSettingsSchema>;
+
