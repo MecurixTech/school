@@ -1,3 +1,4 @@
+
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
@@ -26,22 +27,22 @@ const role = (sessionClaims?.metadata as { role?: string })?.role;
 const columns = [
   {
     header: "Subject Name",
-    accessor: "name",
+    accessor: "subjectName",
   },
   {
     header: "Class",
-    accessor: "class",
+    accessor: "className",
   },
   {
     header: "Teacher",
-    accessor: "teacher",
+    accessor: "teacherName",
     className: "hidden md:table-cell",
   },
   ...(role === "admin"
     ? [
         {
           header: "Actions",
-          accessor: "action",
+          accessor: "actions",
         },
       ]
     : []),

@@ -5,6 +5,7 @@ import {
   deleteAttendance,
   deleteClass,
   deleteExam,
+  deleteEvent,
   deleteResult,
   deleteStudent,
   deleteSubject,
@@ -35,10 +36,10 @@ const deleteActionMap: Partial<DeleteActionMapType> & { [key: string]: any } = {
   assignment: deleteAssignment,
   result: deleteResult,
   attendance: deleteAttendance,
+  event: deleteEvent,
   // TODO: OTHER DELETE ACTIONS
   
   lesson: deleteSubject,
-  event: deleteSubject,
   announcement: deleteSubject,
 }; // USE LAZY LOADING
 
@@ -76,6 +77,10 @@ const ParentForm = dynamic(() => import("./forms/ParentForm"), {
 const LessonForm = dynamic(() => import("./forms/LessonForm"), {
   loading: () => <h1>Loading...</h1>,
 });
+
+// const EventForm = dynamic(() => import("./forms/EventForm"), {
+//   loading: () => <h1>Loading...</h1>,
+// });
 
 const forms: {
   [key: string]: (
@@ -165,6 +170,14 @@ const forms: {
       relatedData={relatedData}
     />
   ),
+  // event: (setOpen, type, data, relatedData) => (
+  //   <EventForm
+  //     type={type}
+  //     data={data}
+  //     setOpen={setOpen}
+  //     relatedData={relatedData}
+  //   />
+  // ),
 };
 
 const FormModal = ({

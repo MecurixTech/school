@@ -12,6 +12,7 @@ import {
   StudentSettingsSchema,
   SubjectSchema,
   TeacherSchema,
+  EventSchema,
   // ParentSchema,
 } from "./formValidationSchemas";
 import prisma from "./prisma";
@@ -881,6 +882,78 @@ export const deleteAttendance = async (
     return { success: true, error: false };
   } catch (err) {
     console.log("Error deleting attendance:", err);
+    return { success: false, error: true };
+  }
+};
+
+// EVENT ACTIONS
+
+export const createEvent = async (
+  currentState: CurrentState,
+  data: EventSchema
+) => {
+  try {
+    await prisma.event.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        classId: data.classId,
+      },
+    });
+
+    revalidatePath("/list/events");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error creating event:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const updateEvent = async (
+  currentState: CurrentState,
+  data: EventSchema
+) => {
+  try {
+    await prisma.event.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        title: data.title,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        classId: data.classId,
+      },
+    });
+
+    revalidatePath("/list/events");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error updating event:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const deleteEvent = async (
+  currentState: CurrentState,
+  data: FormData
+) => {
+  const id = data.get("id") as string;
+
+  try {
+    await prisma.event.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    revalidatePath("/list/events");
+    return { success: true, error: false };
+  } catch (err) {
+    console.log("Error deleting event:", err);
     return { success: false, error: true };
   }
 };
