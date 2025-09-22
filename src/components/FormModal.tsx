@@ -1,11 +1,15 @@
 "use client";
 
 import {
+  deleteAssignment,
+  deleteAttendance,
   deleteClass,
   deleteExam,
+  deleteResult,
   deleteStudent,
   deleteSubject,
   deleteTeacher,
+  deleteParent,
 } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -20,18 +24,17 @@ const deleteActionMap = {
   class: deleteClass,
   teacher: deleteTeacher,
   student: deleteStudent,
+  parent: deleteParent,
   exam: deleteExam,
-// TODO: OTHER DELETE ACTIONS
-  parent: deleteSubject,
+  assignment: deleteAssignment,
+  result: deleteResult,
+  attendance: deleteAttendance,
+  // TODO: OTHER DELETE ACTIONS
+  
   lesson: deleteSubject,
-  assignment: deleteSubject,
-  result: deleteSubject,
-  attendance: deleteSubject,
   event: deleteSubject,
   announcement: deleteSubject,
-};
-
-// USE LAZY LOADING
+}; // USE LAZY LOADING
 
 // import TeacherForm from "./forms/TeacherForm";
 // import StudentForm from "./forms/StudentForm";
@@ -51,7 +54,18 @@ const ClassForm = dynamic(() => import("./forms/ClassForm"), {
 const ExamForm = dynamic(() => import("./forms/ExamForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-// TODO: OTHER FORMS
+const AssignmentForm = dynamic(() => import("./forms/AssignmentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const ResultForm = dynamic(() => import("./forms/ResultForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const ParentForm = dynamic(() => import("./forms/ParentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
 
 const forms: {
   [key: string]: (
@@ -93,6 +107,14 @@ const forms: {
       relatedData={relatedData}
     />
   ),
+   parent: (setOpen, type, data, relatedData) => (
+    <ParentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      
+    />
+  ),
   exam: (setOpen, type, data, relatedData) => (
     <ExamForm
       type={type}
@@ -100,7 +122,30 @@ const forms: {
       setOpen={setOpen}
       relatedData={relatedData}
     />
-    // TODO OTHER LIST ITEMS
+  ),
+  assignment: (setOpen, type, data, relatedData) => (
+    <AssignmentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  result: (setOpen, type, data, relatedData) => (
+    <ResultForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  attendance: (setOpen, type, data, relatedData) => (
+    <AttendanceForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
   ),
 };
 
@@ -130,12 +175,28 @@ const FormModal = ({
     const router = useRouter();
 
     useEffect(() => {
-      if (state.success) {
-        toast(`${table} has been deleted!`);
-        setOpen(false);
-        router.refresh();
-      }
-    }, [state, router]);
+  if (state.success) {
+    toast.success(`${table} has been deleted successfully!`, {
+      position: "top-right",
+      autoClose: 4000,
+    });
+    setOpen(false);
+    router.refresh();
+  }
+
+  if (state.error) {
+    const errorMessage =
+      (state as any).message ||
+      (state as any).errors?.[0]?.message ||
+      "Failed to delete. Please try again.";
+
+    toast.error(errorMessage, {
+      position: "top-right",
+      autoClose: 5000,
+    });
+  }
+}, [state, router]);
+
 
     return type === "delete" && id ? (
       <form action={formAction} className="p-4 flex flex-col gap-4">

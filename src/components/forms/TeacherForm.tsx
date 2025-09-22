@@ -49,12 +49,28 @@ const TeacherForm = ({
   const router = useRouter();
 
   useEffect(() => {
-    if (state.success) {
-      toast(`Teacher has been ${type === "create" ? "created" : "updated"}!`);
-      setOpen(false);
-      router.refresh();
-    }
-  }, [state, router, type, setOpen]);
+  if (state.success) {
+    toast.success(`Teacher has been ${type === "create" ? "created" : "updated"}!`, {
+      position: "top-right",
+      autoClose: 4000,
+    });
+    setOpen(false);
+    router.refresh();
+  }
+
+  if (state.error) {
+    const errorMessage =
+      (state as any).message ||
+      (state as any).errors?.[0]?.message ||
+      "Something went wrong while saving teacher.";
+
+    toast.error(errorMessage, {
+      position: "top-right",
+      autoClose: 5000,
+    });
+  }
+}, [state, router, type, setOpen]);
+
 
   const { subjects } = relatedData;
 
