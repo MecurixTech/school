@@ -24,6 +24,7 @@ export type FormContainerProps = {
 };
 
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
+  // Initialize relatedData with an empty object
   let relatedData = {};
 
   const { userId, sessionClaims } = auth();
@@ -62,17 +63,17 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         relatedData = { subjects: teacherSubjects };
         break;
       case "student":
-  const studentGrades = await prisma.grade.findMany({
-    select: { id: true, level: true },
-  });
-  const studentClasses = await prisma.class.findMany({
-    include: { _count: { select: { students: true } } },
-  });
-  const studentParents = await prisma.parent.findMany({
-    select: { id: true, name: true, surname: true, email: true },
-  });
-  relatedData = { classes: studentClasses, grades: studentGrades, parents: studentParents };
-  break;
+        const studentGrades = await prisma.grade.findMany({
+          select: { id: true, level: true },
+        });
+        const studentClasses = await prisma.class.findMany({
+          include: { _count: { select: { students: true } } },
+        });
+        const studentParents = await prisma.parent.findMany({
+          select: { id: true, name: true, surname: true, email: true },
+        });
+        relatedData = { classes: studentClasses, grades: studentGrades, parents: studentParents };
+        break;
 
       case "exam":
         console.log("Fetching lessons for exam form...");
@@ -446,22 +447,44 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         }
         break;
 
+      case "lesson":
+        // dummy subjects and classes for testing
+        relatedData = {
+          subjects: [
+            { id: "1", name: "Mathematics" },
+            { id: "2", name: "Science" },
+            { id: "3", name: "English" },
+            { id: "4", name: "History" },
+            { id: "5", name: "Geography" }
+          ],
+          classes: [
+            { id: "1", name: "Class 1A" },
+            { id: "2", name: "Class 1B" },
+            { id: "3", name: "Class 2A" },
+            { id: "4", name: "Class 2B" },
+            { id: "5", name: "Class 3A" }
+          ]
+        };
+        break;
+        
       default:
         break;
     }
   }
 
+  const serializedRelatedData = JSON.parse(JSON.stringify(relatedData));
+
   return (
-    <div className="">
+    <div className="form-container">
       <FormModal
         table={table}
         type={type}
         data={data}
         id={id}
-        relatedData={relatedData}
+        relatedData={serializedRelatedData}
       />
     </div>
   );
-};
+}
 
 export default FormContainer;
