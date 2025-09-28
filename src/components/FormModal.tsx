@@ -5,11 +5,13 @@ import {
   deleteAttendance,
   deleteClass,
   deleteExam,
+  deleteEvent,
   deleteResult,
   deleteStudent,
   deleteSubject,
   deleteTeacher,
   deleteParent,
+  type CurrentState,
 } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -19,7 +21,12 @@ import { useFormState } from "react-dom";
 import { toast } from "react-toastify";
 import { FormContainerProps } from "./FormContainer";
 
-const deleteActionMap = {
+type DeleteActionMapType = {
+  [key in 'subject' | 'class' | 'teacher' | 'student' | 'parent' | 'exam' | 'assignment' | 'result' | 'attendance' | 'announcement']: 
+    (currentState: CurrentState, data: FormData) => Promise<{ success: boolean; error: boolean; message?: string }>;
+};
+
+const deleteActionMap: Partial<DeleteActionMapType> & { [key: string]: any } = {
   subject: deleteSubject,
   class: deleteClass,
   teacher: deleteTeacher,
@@ -29,10 +36,10 @@ const deleteActionMap = {
   assignment: deleteAssignment,
   result: deleteResult,
   attendance: deleteAttendance,
+  event: deleteEvent,
   // TODO: OTHER DELETE ACTIONS
   
   lesson: deleteSubject,
-  event: deleteSubject,
   announcement: deleteSubject,
 }; // USE LAZY LOADING
 
@@ -66,6 +73,14 @@ const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), {
 const ParentForm = dynamic(() => import("./forms/ParentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
+
+const LessonForm = dynamic(() => import("./forms/LessonForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+
+// const EventForm = dynamic(() => import("./forms/EventForm"), {
+//   loading: () => <h1>Loading...</h1>,
+// });
 
 const forms: {
   [key: string]: (
@@ -147,6 +162,22 @@ const forms: {
       relatedData={relatedData}
     />
   ),
+  lesson: (setOpen, type, data, relatedData) => (
+    <LessonForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  // event: (setOpen, type, data, relatedData) => (
+  //   <EventForm
+  //     type={type}
+  //     data={data}
+  //     setOpen={setOpen}
+  //     relatedData={relatedData}
+  //   />
+  // ),
 };
 
 const FormModal = ({
@@ -167,7 +198,17 @@ const FormModal = ({
   const [open, setOpen] = useState(false);
 
   const Form = () => {
-    const [state, formAction] = useFormState(deleteActionMap[table], {
+    const defaultAction = () => Promise.resolve({ 
+      success: false, 
+      error: true, 
+      message: `Deletion not supported for ${table}` 
+    });
+
+    const deleteAction = table in deleteActionMap 
+      ? deleteActionMap[table as keyof DeleteActionMapType] 
+      : defaultAction;
+
+    const [state, formAction] = useFormState(deleteAction || defaultAction, {
       success: false,
       error: false,
     });

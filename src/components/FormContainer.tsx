@@ -15,7 +15,8 @@ export type FormContainerProps = {
     | "result"
     | "attendance"
     | "event"
-    | "announcement";
+    | "announcement"
+    | "message";
   type: "create" | "update" | "delete";
   data?: any;
   id?: number | string;
@@ -23,6 +24,7 @@ export type FormContainerProps = {
 };
 
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
+  // Initialize relatedData with an empty object
   let relatedData = {};
 
   const { userId, sessionClaims } = auth();
@@ -61,17 +63,17 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         relatedData = { subjects: teacherSubjects };
         break;
       case "student":
-  const studentGrades = await prisma.grade.findMany({
-    select: { id: true, level: true },
-  });
-  const studentClasses = await prisma.class.findMany({
-    include: { _count: { select: { students: true } } },
-  });
-  const studentParents = await prisma.parent.findMany({
-    select: { id: true, name: true, surname: true, email: true },
-  });
-  relatedData = { classes: studentClasses, grades: studentGrades, parents: studentParents };
-  break;
+        const studentGrades = await prisma.grade.findMany({
+          select: { id: true, level: true },
+        });
+        const studentClasses = await prisma.class.findMany({
+          include: { _count: { select: { students: true } } },
+        });
+        const studentParents = await prisma.parent.findMany({
+          select: { id: true, name: true, surname: true, email: true },
+        });
+        relatedData = { classes: studentClasses, grades: studentGrades, parents: studentParents };
+        break;
 
       case "exam":
         console.log("Fetching lessons for exam form...");
@@ -445,22 +447,44 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         }
         break;
 
+      case "event":
+        const classes = await prisma.class.findMany({
+          select: { id: true, name: true },
+        });
+        relatedData = { classes };
+        break;
+
+      case "lesson":
+        const lessonSubjects = await prisma.subject.findMany({
+          select: { id: true, name: true },
+        });
+        const lessonClasses = await prisma.class.findMany({
+          select: { id: true, name: true },
+        });
+        relatedData = {
+          subjects: lessonSubjects,
+          classes: lessonClasses,
+        };
+        break;
+        
       default:
         break;
     }
   }
 
+  const serializedRelatedData = JSON.parse(JSON.stringify(relatedData));
+
   return (
-    <div className="">
+    <div className="form-container">
       <FormModal
         table={table}
         type={type}
         data={data}
         id={id}
-        relatedData={relatedData}
+        relatedData={serializedRelatedData}
       />
     </div>
   );
-};
+}
 
 export default FormContainer;
