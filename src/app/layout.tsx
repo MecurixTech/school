@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "@/components/ui/sonner"
+import "./globals.css"
 import "react-toastify/dist/ReactToastify.css";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Mecurix School Management Dashboard",
-  description: "Next.js School Management System",
+  description: "School Management System",
 };
 
 export default function RootLayout({
@@ -18,12 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+   
       <html lang="en">
         <body className={inter.className}>
-          {children} <ToastContainer position="bottom-right" theme="dark" />
+      
+          {children}
+          <Toaster />
+       
         </body>
       </html>
-    </ClerkProvider>
+  
   );
 }
