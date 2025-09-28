@@ -1,33 +1,28 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { routeAccessMap } from "./lib/settings";
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-const matchers = Object.keys(routeAccessMap).map((route) => ({
-  matcher: createRouteMatcher([route]),
-  allowedRoles: routeAccessMap[route],
-}));
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-console.log(matchers);
+  const publicPaths = ["/login", "/admin/register"]
 
-export default clerkMiddleware((auth, req) => {
-  // if (isProtectedRoute(req)) auth().protect()
+  const isPublicPath = publicPaths.includes(pathname)
 
-  const { sessionClaims } = auth();
+  const token = request.cookies.get("auth_token")?.value
 
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  for (const { matcher, allowedRoles } of matchers) {
-    if (matcher(req) && !allowedRoles.includes(role!)) {
-      return NextResponse.redirect(new URL(`/${role}`, req.url));
-    }
+  if (!token && !isPublicPath) {
+    return NextResponse.redirect(new URL("/login", request.url))
   }
-});
+
+  if (token && (pathname === "/login" || pathname === "/admin/register")) {
+    return NextResponse.redirect(new URL("/admin", request.url))
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
-};
+}
