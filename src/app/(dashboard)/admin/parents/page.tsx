@@ -19,7 +19,7 @@ const columns = [
   { key: "email", label: "Email" },
   { key: "phone_number", label: "Phone" },
   { key: "spouse_name", label: "Spouse" },
-  { key: "gender", label: "Gender" },
+  { key: "genderBadge", label: "Gender" },
 ]
 
 export default async function ParentsPage() {
@@ -33,54 +33,54 @@ export default async function ParentsPage() {
 
   const parents: Parent[] = Array.isArray(response.data) ? response.data : []
 
-  const renderCell = (parent: Parent, column: any) => {
-    switch (column.key) {
-      case "info":
-        const initials = parent.full_name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage
-                src={parent.profile_image || "/placeholder.svg"}
-                alt={parent.full_name}
-              />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium text-foreground">{parent.full_name}</div>
-              <div className="text-sm text-muted-foreground">
-                ID: {parent.id.slice(0, 8)}
-              </div>
+  // Precompute safe data for DataTable
+  const parentsWithExtras = parents.map((parent) => {
+    const initials = parent.full_name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+
+    return {
+      ...parent,
+      info: (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage
+              src={parent.profile_image || "/placeholder.svg"}
+              alt={parent.full_name}
+            />
+            <AvatarFallback className="bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium text-foreground">{parent.full_name}</div>
+            <div className="text-sm text-muted-foreground">
+              ID: {parent.id.slice(0, 8)}
             </div>
           </div>
-        )
-      case "gender":
-        return (
-          <Badge variant={parent.gender === "MALE" ? "default" : "secondary"}>
-            {parent.gender}
-          </Badge>
-        )
-      default:
-        return String((parent as any)[column.key] || "")
+        </div>
+      ),
+      genderBadge: (
+        <Badge variant={parent.gender === "MALE" ? "default" : "secondary"}>
+          {parent.gender}
+        </Badge>
+      ),
+      viewHref: `/admin/parents/${parent.id}`,
+      editHref: `/admin/parents/${parent.id}/edit`,
     }
-  }
+  })
 
   return (
     <DataTable
       title="Parents"
-      data={parents}
+      data={parentsWithExtras}
       columns={columns}
       searchPlaceholder="Search parents..."
       createHref="/admin/parents/new"
-      viewHref={(id) => `/admin/parents/${id}`}
-      editHref={(id) => `/admin/parents/${id}/edit`}
-      renderCell={renderCell}
+      viewKey="viewHref"
+      editKey="editHref"
     />
   )
 }

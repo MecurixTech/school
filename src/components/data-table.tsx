@@ -25,11 +25,13 @@ interface DataTableProps<T extends { id: string }> {
   onDelete?: (id: string) => void
   onRefresh?: () => void
   createHref?: string
-  viewHref?: (id: string) => string
-  editHref?: (id: string) => string
+  viewKey?: keyof T 
+  editKey?: keyof T  
   renderCell?: (item: T, column: Column<T>) => React.ReactNode
   loading?: boolean
 }
+
+
 
 export function DataTable<T extends { id: string }>({
   title,
@@ -40,8 +42,8 @@ export function DataTable<T extends { id: string }>({
   onDelete,
   onRefresh,
   createHref,
-  viewHref,
-  editHref,
+  viewKey, 
+  editKey,     
   renderCell,
   loading = false,
 }: DataTableProps<T>) {
@@ -210,33 +212,34 @@ export function DataTable<T extends { id: string }>({
                         </td>
                       ))}
                       <td className="p-4">
-                        <div className="flex items-center gap-1">
-                          {viewHref && (
-                            <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Link href={viewHref(item.id)}>
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                          )}
-                          {editHref && (
-                            <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Link href={editHref(item.id)}>
-                                <Edit className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                          )}
-                          {onDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteClick(item)}
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
+  <div className="flex items-center gap-1">
+    {viewKey && item[viewKey] && (
+      <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Link href={String(item[viewKey])}>
+          <Eye className="h-4 w-4" />
+        </Link>
+      </Button>
+    )}
+    {editKey && item[editKey] && (
+      <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Link href={String(item[editKey])}>
+          <Edit className="h-4 w-4" />
+        </Link>
+      </Button>
+    )}
+    {onDelete && (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => handleDeleteClick(item)}
+        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    )}
+  </div>
+</td>
+
                     </tr>
                   ))}
                 </tbody>

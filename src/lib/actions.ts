@@ -135,9 +135,10 @@ export async function createUserAction(formData: FormData) {
         return { error: "Invalid user type" }
     }
 
-    if (result.error) {
-      return { error: result.error }
-    }
+   if (result?.status === "failure") {
+  return { error: result.message || "Failed to create user" }
+}
+
 
     revalidatePath(`/admin/${userType}s`)
     return { success: true, message: `${userType} created successfully` }
