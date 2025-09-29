@@ -1,27 +1,26 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
-import BigCalendar from "@/components/BigCalender";
 import EventCalendar from "@/components/EventCalendar";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 
-const StudentPage = async () => {
-  const { userId } = auth();
+const StudentPage = () => {
+  // Static student class data
+  const classItem = {
+    id: "class-001",
+    name: "Grade 10 - A",
+  };
 
-  const classItem = await prisma.class.findMany({
-    where: {
-      students: { some: { id: userId! } },
-    },
-  });
+  // If you want to simulate "no class" scenario, set classItem to null:
+  // const classItem = null;
 
-  console.log(classItem);
-  
-  if (!classItem || classItem.length === 0) {
+  if (!classItem) {
     return (
       <div className="p-4">
         <div className="bg-white p-6 rounded-lg shadow">
           <h1 className="text-xl font-semibold mb-4">No Class Found</h1>
-          <p>You are not currently enrolled in any class. Please contact your administrator.</p>
+          <p>
+            You are not currently enrolled in any class. Please contact your
+            administrator.
+          </p>
         </div>
       </div>
     );
@@ -32,10 +31,14 @@ const StudentPage = async () => {
       {/* LEFT */}
       <div className="w-full xl:w-2/3">
         <div className="h-full bg-white p-4 rounded-md">
-          <h1 className="text-xl font-semibold">Schedule ({classItem[0].name || 'My Schedule'})</h1>
-          <BigCalendarContainer type="classId" id={classItem[0].id} />
+          <h1 className="text-xl font-semibold">
+            Schedule ({classItem.name || "My Schedule"})
+          </h1>
+          {/* Use the static class id */}
+          <BigCalendarContainer type="classId" id={classItem.id} />
         </div>
       </div>
+
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-8">
         <EventCalendar />

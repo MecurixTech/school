@@ -1,19 +1,19 @@
-import prisma from "@/lib/prisma";
 import Image from "next/image";
 
-const UserCard = async ({
+const UserCard = ({
   type,
 }: {
   type: "admin" | "teacher" | "student" | "parent";
 }) => {
-  const modelMap: Record<typeof type, any> = {
-    admin: prisma.admin,
-    teacher: prisma.teacher,
-    student: prisma.student,
-    parent: prisma.parent,
+  
+  const staticData: Record<typeof type, number> = {
+    admin: 5,
+    teacher: 12,
+    student: 120,
+    parent: 60,
   };
 
-  const data = await modelMap[type].count();
+  const data = staticData[type];
 
   return (
     <div className="rounded-2xl odd:bg-lamaPurple even:bg-lamaYellow p-4 flex-1 min-w-[130px]">

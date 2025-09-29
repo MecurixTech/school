@@ -1,118 +1,114 @@
+"use client";
+
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import prisma from "@/lib/prisma";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Parent, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
 
-import { auth } from "@clerk/nextjs/server";
+// Static/mock data
+const ITEM_PER_PAGE = 5;
 
-type ParentList = Parent & { students: Student[] };
+type Student = {
+  id: string;
+  name: string;
+};
 
-const ParentListPage = async ({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) => {
+type ParentList = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  students: Student[];
+};
 
-const { sessionClaims } = auth();
-const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-
-const columns = [
+// Example static data
+const MOCK_DATA: ParentList[] = [
   {
-    header: "Info",
-    accessor: "info",
+    id: "1",
+    name: "John Doe",
+    email: "john@example.com",
+    phone: "08123456789",
+    address: "123 Main St, Lagos",
+    students: [
+      { id: "s1", name: "Jane Doe" },
+      { id: "s2", name: "Jack Doe" },
+    ],
   },
   {
-    header: "Student Names",
-    accessor: "students",
-    className: "hidden md:table-cell",
+    id: "2",
+    name: "Mary Smith",
+    email: "mary@example.com",
+    phone: "08098765432",
+    address: "456 Elm St, Abuja",
+    students: [{ id: "s3", name: "Sam Smith" }],
   },
-  {
-    header: "Phone",
-    accessor: "phone",
-    className: "hidden lg:table-cell",
-  },
-  {
-    header: "Address",
-    accessor: "address",
-    className: "hidden lg:table-cell",
-  },
-  ...(role === "admin"
-    ? [
-        {
-          header: "Actions",
-          accessor: "action",
-        },
-      ]
-    : []),
+  // Add more mock parents here
 ];
 
-const renderRow = (item: ParentList) => (
-  <tr
-    key={item.id}
-    className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
-  >
-    <td className="flex items-center gap-4 p-4">
-      <div className="flex flex-col">
-        <h3 className="font-semibold">{item.name}</h3>
-        <p className="text-xs text-gray-500">{item?.email}</p>
-      </div>
-    </td>
-    <td className="hidden md:table-cell">
-      {item.students.map((student) => student.name).join(",")}
-    </td>
-    <td className="hidden md:table-cell">{item.phone}</td>
-    <td className="hidden md:table-cell">{item.address}</td>
-    <td>
-      <div className="flex items-center gap-2">
-        {role === "admin" && (
-          <>
-            <FormContainer table="parent" type="update" data={item} />
-            <FormContainer table="parent" type="delete" id={item.id} />
-          </>
-        )}
-      </div>
-    </td>
-  </tr>
-);
+interface ParentListPageProps {
+  searchParams: { [key: string]: string | undefined };
+}
 
-  const { page, ...queryParams } = searchParams;
+const ParentListPage = ({ searchParams }: ParentListPageProps) => {
+  // For demo, let's assume the role is admin
+  const role = "admin";
 
-  const p = page ? parseInt(page) : 1;
+  const columns = [
+    { header: "Info", accessor: "info" },
+    { header: "Student Names", accessor: "students", className: "hidden md:table-cell" },
+    { header: "Phone", accessor: "phone", className: "hidden lg:table-cell" },
+    { header: "Address", accessor: "address", className: "hidden lg:table-cell" },
+    ...(role === "admin" ? [{ header: "Actions", accessor: "action" }] : []),
+  ];
 
-  // URL PARAMS CONDITION
+  const renderRow = (item: ParentList) => (
+    <tr
+      key={item.id}
+      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
+    >
+      <td className="flex items-center gap-4 p-4">
+        <div className="flex flex-col">
+          <h3 className="font-semibold">{item.name}</h3>
+          <p className="text-xs text-gray-500">{item.email}</p>
+        </div>
+      </td>
+      <td className="hidden md:table-cell">
+        {item.students.map((student) => student.name).join(", ")}
+      </td>
+      <td className="hidden lg:table-cell">{item.phone}</td>
+      <td className="hidden lg:table-cell">{item.address}</td>
+      <td>
+        <div className="flex items-center gap-2">
+          {role === "admin" && (
+            <>
+              <FormContainer table="parent" type="update" data={item} />
+              <FormContainer table="parent" type="delete" id={item.id} />
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
 
-  const query: Prisma.ParentWhereInput = {};
+  // Pagination & search simulation
+  const { page, search } = searchParams;
+  const currentPage = page ? parseInt(page) : 1;
 
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "search":
-            query.name = { contains: value, mode: "insensitive" };
-            break;
-          default:
-            break;
-        }
-      }
-    }
+  let filteredData = MOCK_DATA;
+  if (search) {
+    filteredData = filteredData.filter((p) =>
+      p.name.toLowerCase().includes(search.toLowerCase())
+    );
   }
 
-  const [data, count] = await prisma.$transaction([
-    prisma.parent.findMany({
-      where: query,
-      include: {
-        students: true,
-      },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-    }),
-    prisma.parent.count({ where: query }),
-  ]);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
+
+  const totalCount = filteredData.length;
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -128,21 +124,14 @@ const renderRow = (item: ParentList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && (
-              <FormContainer
-                table="parent"
-                type="create"
-              />
-            )}
-
-            
+            {role === "admin" && <FormContainer table="parent" type="create" />}
           </div>
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
+      <Table columns={columns} renderRow={renderRow} data={paginatedData} />
       {/* PAGINATION */}
-      <Pagination page={p} count={count} />
+      <Pagination page={currentPage} count={totalCount} />
     </div>
   );
 };
