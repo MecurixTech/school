@@ -22,56 +22,55 @@ const columns = [
 export default async function TeachersPage() {
   await serverAuthClient.requireAuth()
 
-  const response = await serverAuthClient.getTeachers()
+  const teachers = await serverAuthClient.getTeachers()
 
-  if (response.error) {
+  if (!teachers) {
     redirect("/admin?error=" + encodeURIComponent("Failed to load teachers"))
   }
 
-  const teachers: Teacher[] = Array.isArray(response.data) ? response.data : []
+ const teachersWithExtras = teachers.map((teacher) => {
+  const initials = teacher.full_name
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase();
 
-  const renderCell = (teacher: Teacher, column: any) => {
-    switch (column.key) {
-      case "info":
-        const initials = teacher.full_name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage
-                src={teacher.profile_image || "/placeholder.svg"}
-                alt={teacher.full_name}
-              />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium text-foreground">{teacher.full_name}</div>
-              <div className="text-sm text-muted-foreground">
-                ID: {teacher.id.slice(0, 8)}
-              </div>
-            </div>
+  return {
+    ...teacher,
+    info: (
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage
+            src={teacher.profile_image || "/placeholder.svg"}
+            alt={teacher.full_name}
+          />
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="font-medium text-foreground">{teacher.full_name}</div>
+          <div className="text-sm text-muted-foreground">
+            ID: {teacher.id.slice(0, 8)}
           </div>
-        )
-      default:
-        return String((teacher as any)[column.key] || "")
-    }
-  }
+        </div>
+      </div>
+    ),
+    viewHref: `/admin/teachers/${teacher.id}`, 
+    editHref: `/admin/teachers/${teacher.id}/edit`,
+  };
+});
+
 
   return (
     <DataTable
       title="Teachers"
-      data={teachers}
+      data={teachersWithExtras}
       columns={columns}
       searchPlaceholder="Search teachers..."
       createHref="/admin/teachers/new"
-      viewHref={(id) => `/admin/teachers/${id}`}
-      editHref={(id) => `/admin/teachers/${id}/edit`}
-      renderCell={renderCell}
+      viewKey="viewHref"
+      editKey="editHref"
     />
   )
 }

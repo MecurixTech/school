@@ -1,21 +1,47 @@
 import { httpClient } from "./http-client"
-import type { ApiResponse } from "../types/auth"
+import type { ApiResponse, TeacherResponse, ParentResponse , Parent, Teacher } from "../types/auth"
 
 export class UserService {
-  async getStudents(): Promise<ApiResponse<any[]>> {
-    console.log(" UserService.getStudents")
-    return httpClient.request("/admin/students")
+ async getStudents(): Promise<ApiResponse<any[]>> {
+    console.log("UserService.getStudents")
+    const res = await httpClient.request("/admin/students")
+    return res.data?.data ?? []
   }
 
-  async getTeachers(): Promise<ApiResponse<any[]>> {
-    console.log(" UserService.getTeachers")
-    return httpClient.request("/admin/teachers")
+  async getTeachers(): Promise<Teacher[]> {
+  const res = await httpClient.request<TeacherResponse>("/admin/teachers")
+  return res.data?.data ?? []
   }
 
-  async getParents(): Promise<ApiResponse<any[]>> {
-    console.log(" UserService.getParents")
-    return httpClient.request("/admin/parents")
+   async getParents(): Promise<Parent[]> {
+    const res = await httpClient.request<ParentResponse>("/admin/parents")
+    return res.data?.data?.data ?? []
   }
+
+
+  async getParentById(id: string): Promise<any | null> {
+  try {
+    const res = await httpClient.request(`/admin/parents/${id}`)
+    return res.data?.data ?? null
+  } catch (err) {
+    console.error("Error fetching parent by id:", err)
+    return null
+  }
+}
+
+
+async getTeacherById(id: string): Promise<any | null> {
+  try {
+    const res = await httpClient.request(`/admin/teachers/${id}`)
+    return res.data?.data ?? null
+  } catch (err) {
+    console.error("Error fetching parent by id:", err)
+    return null
+  }
+}
+
+
+
 
   async getStats() {
     console.log(" UserService.getStats starting")
@@ -30,7 +56,7 @@ export class UserService {
       students: studentsRes.data?.length || 0,
       teachers: teachersRes.data?.length || 0,
       parents: parentsRes.data?.length || 0,
-      admins: 1, // Assuming at least one admin exists
+      admins: 1,
     }
 
     console.log(" UserService.getStats result:", stats)
@@ -52,6 +78,21 @@ export class UserService {
       body: JSON.stringify(teacher),
     })
   }
+
+
+async updateTeacher(id: string, data: any): Promise<ApiResponse<any>> {
+  return httpClient.request(`/admin/teachers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  })
+}
+
+async deactivateTeacher(id: string): Promise<ApiResponse<any>> {
+  return httpClient.request(`/admin/teachers/${id}/deactivate`, {
+    method: "PATCH",
+  })
+}
+
 
   async createParent(parent: any): Promise<ApiResponse<any>> {
     console.log(" UserService.createParent:", parent.email)

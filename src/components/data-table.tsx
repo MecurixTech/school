@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -143,7 +142,7 @@ export function DataTable<T extends { id: string }>({
               {loading
                 ? "Loading..."
                 : `${filteredData.length} ${
-                    filteredData.length === 1 ? "record" : "records"
+                    filteredData.length === 1 ? "result" : "results"
                   }`}
             </span>
             {!loading && searchQuery && (
@@ -163,13 +162,13 @@ export function DataTable<T extends { id: string }>({
               <div className="text-muted-foreground">
                 {searchQuery
                   ? `No results found for "${searchQuery}"`
-                  : "No records found"}
+                  : "No results found"}
               </div>
               {createHref && !searchQuery && (
                 <Button asChild className="mt-4 bg-transparent" variant="outline">
                   <Link href={createHref}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add First Record
+                    Add
                   </Link>
                 </Button>
               )}
@@ -206,10 +205,19 @@ export function DataTable<T extends { id: string }>({
                     >
                       {columns.map((column) => (
                         <td key={String(column.key)} className="p-4">
-                          {renderCell
-                            ? renderCell(item, column)
-                            : String(item[column.key as keyof T] ?? "")}
-                        </td>
+  {renderCell
+    ? renderCell(item, column)
+    : (() => {
+        const value = item[column.key as keyof T];
+
+        if (React.isValidElement(value)) return value;
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+          return String(value);
+        }
+        return null; 
+      })()}
+</td>
+
                       ))}
                       <td className="p-4">
   <div className="flex items-center gap-1">

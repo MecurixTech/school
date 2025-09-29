@@ -1,15 +1,18 @@
 import StudentSettingsForm from "@/components/forms/StudentSettingsForm";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 
-const StudentSettingsPage = async () => {
-  const { userId } = auth();
-
-  const student = await prisma.student.findUnique({
-    where: {
-      id: userId!,
-    },
-  });
+const StudentSettingsPage = () => {
+  // Static student data
+  const student = {
+    id: "student-001",
+    name: "John",
+    surname: "Doe",
+    email: "johndoe@example.com",
+    phone: "08012345678",
+    bloodType: "A",
+    birthday: new Date("2007-05-14"),
+    img: "/noAvatar.png",
+    classId: "class-001",
+  };
 
   if (!student) {
     return (

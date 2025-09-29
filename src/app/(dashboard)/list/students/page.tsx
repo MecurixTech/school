@@ -1,59 +1,71 @@
+"use client";
+
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-
-import prisma from "@/lib/prisma";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Class, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
-import { auth } from "@clerk/nextjs/server";
+const ITEM_PER_PAGE = 5;
 
-type StudentList = Student & { class: Class };
+type Class = {
+  id: string;
+  name: string;
+};
 
-const StudentListPage = async ({
-  searchParams,
-}: {
+type StudentList = {
+  id: string;
+  name: string;
+  username: string;
+  phone: string;
+  address: string;
+  img?: string;
+  class: Class;
+};
+
+// Mock data
+const MOCK_CLASSES: Class[] = [
+  { id: "c1", name: "Primary 1" },
+  { id: "c2", name: "Primary 2" },
+];
+
+const MOCK_STUDENTS: StudentList[] = [
+  {
+    id: "1",
+    name: "John Doe",
+    username: "john.doe",
+    phone: "08123456789",
+    address: "123 Main St, Lagos",
+    img: "",
+    class: MOCK_CLASSES[0],
+  },
+  {
+    id: "2",
+    name: "Mary Smith",
+    username: "mary.smith",
+    phone: "08098765432",
+    address: "456 Elm St, Abuja",
+    img: "",
+    class: MOCK_CLASSES[1],
+  },
+  // Add more students as needed
+];
+
+interface StudentListPageProps {
   searchParams: { [key: string]: string | undefined };
-}) => {
-  const { sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+}
+
+const StudentListPage = ({ searchParams }: StudentListPageProps) => {
+  const role = "admin"; // Hardcoded for demo purposes
 
   const columns = [
-    {
-      header: "Info",
-      accessor: "info",
-    },
-    {
-      header: "Student ID",
-      accessor: "studentId",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Grade",
-      accessor: "grade",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Phone",
-      accessor: "phone",
-      className: "hidden lg:table-cell",
-    },
-    {
-      header: "Address",
-      accessor: "address",
-      className: "hidden lg:table-cell",
-    },
-    ...(role === "admin"
-      ? [
-          {
-            header: "Actions",
-            accessor: "action",
-          },
-        ]
-      : []),
+    { header: "Info", accessor: "info" },
+    { header: "Student ID", accessor: "studentId", className: "hidden md:table-cell" },
+    { header: "Grade", accessor: "grade", className: "hidden md:table-cell" },
+    { header: "Phone", accessor: "phone", className: "hidden lg:table-cell" },
+    { header: "Address", accessor: "address", className: "hidden lg:table-cell" },
+    ...(role === "admin" ? [{ header: "Actions", accessor: "action" }] : []),
   ];
 
   const renderRow = (item: StudentList) => (
@@ -90,7 +102,7 @@ const StudentListPage = async ({
               table="student"
               type="delete"
               id={item.id}
-              relatedData={{ parents, grades, classes }}
+              relatedData={{ parents: [], grades: [], classes: MOCK_CLASSES }}
             />
           )}
         </div>
@@ -98,53 +110,23 @@ const StudentListPage = async ({
     </tr>
   );
 
-  const { page, ...queryParams } = searchParams;
-  const p = page ? parseInt(page) : 1;
+  const { page, search } = searchParams;
+  const currentPage = page ? parseInt(page) : 1;
 
-  // URL PARAMS CONDITION
-  const query: Prisma.StudentWhereInput = {};
-
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "teacherId":
-            query.class = {
-              lessons: {
-                some: {
-                  teacherId: value,
-                },
-              },
-            };
-            break;
-          case "search":
-            query.name = { contains: value, mode: "insensitive" };
-            break;
-          default:
-            break;
-        }
-      }
-    }
+  // Filter by search
+  let filteredData = MOCK_STUDENTS;
+  if (search) {
+    filteredData = filteredData.filter((s) =>
+      s.name.toLowerCase().includes(search.toLowerCase())
+    );
   }
 
-  const [data, count, parents, grades, classes] = await prisma.$transaction([
-    prisma.student.findMany({
-      where: query,
-      include: {
-        class: true,
-      },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-    }),
-    prisma.student.count({ where: query }),
-    prisma.parent.findMany({
-      select: { id: true, name: true, surname: true, email: true },
-    }),
-    prisma.grade.findMany(),
-    prisma.class.findMany({
-      include: { _count: { select: { students: true } } },
-    }),
-  ]);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
+
+  const totalCount = filteredData.length;
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -164,16 +146,16 @@ const StudentListPage = async ({
               <FormContainer
                 table="student"
                 type="create"
-                relatedData={{ parents, grades, classes }}
+                relatedData={{ parents: [], grades: [], classes: MOCK_CLASSES }}
               />
             )}
           </div>
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
+      <Table columns={columns} renderRow={renderRow} data={paginatedData} />
       {/* PAGINATION */}
-      <Pagination page={p} count={count} />
+      <Pagination page={currentPage} count={totalCount} />
     </div>
   );
 };
